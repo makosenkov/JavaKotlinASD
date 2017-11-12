@@ -35,12 +35,10 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
         Node<T> newNode = new Node<>(t);
         if (closest == null) {
             root = newNode;
-        }
-        else if (comparison < 0) {
+        } else if (comparison < 0) {
             assert closest.left == null;
             closest.left = newNode;
-        }
-        else {
+        } else {
             assert closest.right == null;
             closest.right = newNode;
         }
@@ -81,12 +79,10 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
         int comparison = value.compareTo(start.value);
         if (comparison == 0) {
             return start;
-        }
-        else if (comparison < 0) {
+        } else if (comparison < 0) {
             if (start.left == null) return start;
             return find(start.left, value);
-        }
-        else {
+        } else {
             if (start.right == null) return start;
             return find(start.right, value);
         }
@@ -96,7 +92,8 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
 
         private Node<T> current = null;
 
-        private BinaryTreeIterator() {}
+        private BinaryTreeIterator() {
+        }
 
         private Node<T> findNext() {
             throw new UnsupportedOperationException();
@@ -141,19 +138,72 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
     @NotNull
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
-        throw new UnsupportedOperationException();
+        if (fromElement == null || toElement == null) throw new NullPointerException();
+        if (fromElement.compareTo(this.first()) < 0 || fromElement.compareTo(this.last()) > 0 ||
+                toElement.compareTo(this.first()) < 0 || toElement.compareTo(this.last()) > 0 ||
+                fromElement.compareTo(toElement) > 0)
+            throw new IllegalArgumentException();
+        return this.headSet(toElement).tailSet(fromElement);
     }
 
     @NotNull
     @Override
     public SortedSet<T> headSet(T toElement) {
-        throw new UnsupportedOperationException();
+        if (toElement == null) throw new NullPointerException();
+        if (root == null) throw new NoSuchElementException();
+        if (toElement.compareTo(this.first()) < 0 || toElement.compareTo(this.last()) > 0)
+            throw new IllegalArgumentException();
+        Node<T> current = root;
+        BinaryTree<T> newSet = new BinaryTree<>();
+        while (toElement.compareTo(current.value) != 0) {
+            if (toElement.compareTo(current.value) > 0) {
+                newSet.add(current.value);
+                if (current.left != null) addBranch(current.left, newSet);
+                if (current.right != null) current = current.right;
+                else break;
+            } else {
+                if (current.left != null) current = current.left;
+                else break;
+            }
+        }
+        if (toElement.compareTo(current.value) == 0) {
+            if (current.left != null) addBranch(current.left, newSet);
+        }
+        return newSet;
     }
 
     @NotNull
     @Override
     public SortedSet<T> tailSet(T fromElement) {
-        throw new UnsupportedOperationException();
+        if (fromElement == null) throw new NullPointerException();
+        if (fromElement.compareTo(this.first()) < 0 || fromElement.compareTo(this.last()) > 0)
+            throw new IllegalArgumentException();
+        if (root == null) throw new NoSuchElementException();
+        Node<T> current = root;
+        BinaryTree<T> newSet = new BinaryTree<>();
+        while (fromElement.compareTo(current.value) != 0) {
+            if (fromElement.compareTo(current.value) < 0) {
+                newSet.add(current.value);
+                if (current.right != null) addBranch(current.right, newSet);
+                if (current.left != null) current = current.left;
+                else
+                    break;
+            } else {
+                if (current.right != null) current = current.right;
+                else break;
+            }
+        }
+        if (fromElement.compareTo(current.value) == 0) {
+            newSet.add(current.value);
+            if (current.right != null) addBranch(current.right, newSet);
+        }
+        return newSet;
+    }
+
+    private void addBranch(Node<T> node, BinaryTree<T> tree) {
+        tree.add(node.value);
+        if (node.left != null) addBranch(node.left, tree);
+        if (node.right != null) addBranch(node.right, tree);
     }
 
     @Override
